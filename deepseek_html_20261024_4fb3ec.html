@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Обновление системы</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        
+        body {
+            background-color: #f0f0f0;
+            color: #000;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .update-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            transition: opacity 0.5s ease;
+            background: #fff;
+        }
+
+        .update-box {
+            background: #fff;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .logo-img {
+            width: 100px;
+            height: auto;
+            margin-bottom: 30px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        h1 {
+            color: #000;
+            font-size: 24px;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #0077FF;
+            transition: width 0.1s linear;
+        }
+
+        button {
+            background: transparent;
+            border: 1px solid #ccc;
+            color: #0077FF;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+        button:hover {
+            background: #f0f8ff;
+            border-color: #0077FF;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+            animation-iteration-count: infinite;
+        }
+
+        .final-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            text-align: center;
+            animation: fadeIn 1s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .final-logo {
+            width: 150px;
+            height: auto;
+            margin-bottom: 30px;
+        }
+
+        .final-screen h1 {
+            font-size: 32px;
+            color: #000;
+            margin-bottom: 10px;
+        }
+
+        .final-screen p {
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="update-screen" id="updateScreen">
+        <div class="update-box" id="updateBox">
+            <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/6/60/VK_Full_Logo_%282021-present%29.svg/3840px-VK_Full_Logo_%282021-present%29.svg.png?utm_source=ru.wikipedia.org&utm_campaign=index&utm_content=thumbnail" class="logo-img" alt="VK">
+
+            <h1 id="statusTitle">Обновление ВКонтакте</h1>
+            <p id="statusSubtitle">Загрузка новой версии приложения...</p>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <button id="cancelBtn" onclick="triggerPrank()">Отменить</button>
+        </div>
+    </div>
+
+    <div class="final-screen" id="finalScreen">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/7/75/Max_logo_2025.png?utm_source=ru.wikipedia.org&utm_campaign=index&utm_content=original" class="final-logo" alt="MAX">
+        <h1>Приложение обновлено</h1>
+        <p>Добро пожаловать в MAX.</p>
+    </div>
+
+    <!-- Аудио элемент для пранка -->
+    <audio id="prankAudio" src="https://www.myinstants.com/media/sounds/ston-250.mp3" preload="auto"></audio>
+
+    <script>
+        let progress = 0;
+        let isTriggered = false;
+        let progressInterval = null;
+
+        function startProgress(speed = 1) {
+            if (progressInterval) clearInterval(progressInterval);
+            
+            progressInterval = setInterval(() => {
+                progress += Math.random() * 2 * speed;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(progressInterval);
+                    finishUpdate();
+                }
+                updateProgressUI();
+            }, 100);
+        }
+
+        function updateProgressUI() {
+            const bar = document.getElementById('progressBar');
+            bar.style.width = progress + '%';
+        }
+
+        startProgress(0.5);
+
+        function triggerPrank() {
+            if (isTriggered) return;
+            isTriggered = true;
+
+            const btn = document.getElementById('cancelBtn');
+            btn.textContent = 'ОТМЕНА НЕВОЗМОЖНА';
+            btn.style.color = '#ff0055';
+            btn.style.borderColor = '#ff0055';
+            btn.style.cursor = 'not-allowed';
+
+            document.getElementById('updateBox').classList.add('shake');
+
+            // Включаем ГРОМКИЙ СТОН
+            const audio = document.getElementById('prankAudio');
+            audio.volume = 1.0; // На полную громкость
+            audio.play().catch(e => console.log("Браузер заблокировал звук:", e));
+
+            startProgress(15);
+
+            document.getElementById('statusTitle').textContent = 'УСТАНОВКА НЕОБРАТИМА';
+            document.getElementById('statusSubtitle').textContent = 'Процесс уже не остановить...';
+        }
+
+        function finishUpdate() {
+            document.getElementById('updateScreen').style.opacity = '0';
+            
+            setTimeout(() => {
+                document.getElementById('updateScreen').style.display = 'none';
+                document.getElementById('finalScreen').style.display = 'flex';
+            }, 500);
+        }
+    </script>
+</body>
+</html>
